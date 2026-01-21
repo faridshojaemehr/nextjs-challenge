@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useDeferredValue } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { SearchContainer } from "./_components/SearchContainer";
 import { StatsDashboard } from "./_components/StatsDashboard";
 import { Sidebar } from "./_components/Sidebar";
@@ -22,30 +22,35 @@ import { ClientPageProps } from "./_types/clientpage.interface";
 
 export default function ClientPage({ initialData }: ClientPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  // Deferred query to keep input responsive
-  const deferredQuery = useDeferredValue(searchQuery);
+  // Debounce Logic: 300ms delay + 3-char limit
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
 
-  // Optimized Favorites Lookup (O(1))
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+
   const favoritesSet = useMemo(() => new Set(favorites), [favorites]);
 
-  // Unified Filter + Stats Calculation (One Pass)
   const { filteredData, stats } = useMemo(() => {
-    // Initialize stats accumulators
     let sum = 0;
     let maxValue = 0;
     let minValue = Infinity;
     const categoryCount: Record<string, number> = {};
 
-    // Filter Logic
-    const lowerQuery = deferredQuery.toLowerCase();
+    // Filter Logic using DEBOUNCED query
+    const lowerQuery = debouncedQuery.toLowerCase();
     const result: Item[] = [];
 
     // Single loop for both filtering and stats
     for (const item of initialData) {
-      // Use pre-computed lowercase fields for fast filtering
       const matches =
         !lowerQuery ||
         item.titleLower.includes(lowerQuery) ||
@@ -80,7 +85,7 @@ export default function ClientPage({ initialData }: ClientPageProps) {
     };
 
     return { filteredData: result, stats: computedStats };
-  }, [initialData, deferredQuery]);
+  }, [initialData, debouncedQuery]);
 
   // Handlers
   const handleSearch = useCallback((query: string) => {
@@ -143,7 +148,7 @@ export default function ClientPage({ initialData }: ClientPageProps) {
             <div style={{ height: "800px" }}>
               <VirtualList
                 items={filteredData}
-                itemHeight={160} // Matches CSS height + padding + border
+                itemHeight={160}
                 containerHeight={800}
               />
             </div>

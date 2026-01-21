@@ -13,108 +13,134 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
 }) => (
   <div className={styles.accordionItem}>
     <button
-      className={`${styles.accordionHeader} ${isOpen ? styles.open : ""}`}
+      className={`${styles.accordionHeader} ${isOpen ? styles.active : ""}`}
       onClick={onToggle}
     >
-      <span className={styles.accordionTitle}>{title}</span>
-      <span className={styles.accordionIcon}>{isOpen ? "▼" : "▶"}</span>
+      <h3>{title}</h3>
+      <span className={styles.icon}>{isOpen ? "-" : "+"}</span>
     </button>
     {isOpen && <div className={styles.accordionContent}>{content}</div>}
   </div>
 );
 
-AccordionItem.displayName = "AccordionItem";
-
 export const PerformanceGuide: React.FC = () => {
-  const [openItems, setOpenItems] = useState<number[]>([]);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const toggleItem = (index: number) => {
-    setOpenItems((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
-    );
+    setOpenIndex(openIndex === index ? null : index);
   };
 
-  const guides = [
+  const items = [
     {
-      title: "🎯 Current Issues in This Code",
+      title: "1. Virtualization (Virtual Scrolling)",
       content: (
-        <div className={styles.guideContent}>
-          <h4>Performance Problems:</h4>
+        <>
+          <p>
+            Rendering 100,000 items directly into the DOM would crash the
+            browser. We use <strong>Virtual Scrolling</strong> to solve this.
+          </p>
           <ul>
+            <li>Only renders items currently visible in the viewport.</li>
+            <li>Calculates which items to show based on scroll position.</li>
             <li>
-              <strong>Unnecessary Re-renders:</strong> Search state changes
-              cause entire component tree re-renders
-            </li>
-            <li>
-              <strong>Heavy Computations:</strong> Stats recalculate on every
-              search, even with debouncing
-            </li>
-            <li>
-              <strong>Reference Instability:</strong> New objects/arrays created
-              on each render break memoization
+              Keeps DOM nodes constant (e.g., ~20 items) regardless of list
+              size.
             </li>
           </ul>
-          <p className={styles.codeBlock}>
-            💡 <strong>How useDeferredValue Helps:</strong>
-            <br />
-            Instead of startTransition (urgent), useDeferredValue keeps
-            expensive computations deferred, showing stale UI while React works
-            in background
-          </p>
-        </div>
+        </>
       ),
     },
     {
-      title: "📊 How to Identify Re-renders (Important!)",
+      title: "2. Logic Splitting (Filtering & Stats)",
       content: (
-        <div className={styles.guideContent}>
+        <>
           <p>
-            <strong>First Step:</strong> If you don&apos;t know where the
-            problem is, use the Profiler!
+            Instead of looping through the data multiple times (once for filter,
+            once for stats), we combine them.
           </p>
-          <h4>🔧 Steps:</h4>
-          <ol>
-            <li>Open DevTools → Profiler tab</li>
-            <li>Click the Record button (● red circle)</li>
-            <li>Type on the page (search, favorites, etc)</li>
-            <li>Click Record again to stop</li>
-          </ol>
-          <h4>🔍 How to Read the Results?</h4>
           <ul>
             <li>
-              <strong>Flamegraph:</strong> Which components rendered
+              <strong>O(N)</strong> complexity instead of <strong>O(2N)</strong>
+              .
             </li>
             <li>
-              <strong>Ranked Chart:</strong> Which ones are slow (red)
-            </li>
-            <li>
-              <strong>Renders Count:</strong> How many times each component
-              re-rendered
+              Reduced memory overhead by not creating intermediate arrays.
             </li>
           </ul>
-          <h4>❓ What to Look For?</h4>
+        </>
+      ),
+    },
+    {
+      title: "3. Memoization (useMemo & React.memo)",
+      content: (
+        <>
+          <p>Prevents unnecessary re-computations and re-renders.</p>
           <ul>
-            <li>❌ Components re-rendering without reason</li>
-            <li>❌ Red bars (slow rendering)</li>
-            <li>❌ Repeated calculations</li>
+            <li>
+              <strong>First Step:</strong> If you don&apos;t know where the
+              problem is, use the Profiler!/stats calculation.
+            </li>
+            <li>
+              <strong>React.memo</strong>: Prevents child components (Sidebar,
+              Stats) from re-rendering if props haven&apos;t changed.
+            </li>
           </ul>
-        </div>
+        </>
+      ),
+    },
+    {
+      title: "4. Efficient Lookups (Set vs Array)",
+      content: (
+        <>
+          <p>
+            Checking if an item is favorited using an Array is{" "}
+            <strong>O(N)</strong>. Inside a large list, this is a disaster.
+          </p>
+          <ul>
+            <li>
+              We convert the Favorites array to a <strong>Set</strong>.
+            </li>
+            <li>
+              Lookups become <strong>O(1)</strong> (instant).
+            </li>
+          </ul>
+        </>
+      ),
+    },
+    {
+      title: "5. Search Optimization (Debounce)",
+      content: (
+        <>
+          <p>
+            Filtering 100k items on every keystroke is expensive. We optimized
+            this with a debounce strategy along with specific criteria.
+          </p>
+          <ul>
+            <li>
+              <strong>Debounce (300ms)</strong>: The heavy calculation updates
+              only after the user stops typing for 300ms.
+            </li>
+            <li>
+              <strong>Character Limit (3 chars)</strong>: The comprehensive
+              search logic is skipped until the user types at least 3
+              characters, preventing massive result sets for single letters.
+            </li>
+          </ul>
+        </>
       ),
     },
   ];
 
   return (
     <div className={styles.performanceGuide}>
-      <div className={styles.guideHeader}>
-        <h2>📚 Performance Optimization Guide</h2>
-      </div>
-      <div className={styles.accordion}>
-        {guides.map((guide, index) => (
+      <h2>Performance Optimization Guide</h2>
+      <div className={styles.accordionContainer}>
+        {items.map((item, index) => (
           <AccordionItem
             key={index}
-            title={guide.title}
-            content={guide.content}
-            isOpen={openItems.includes(index)}
+            title={item.title}
+            content={item.content}
+            isOpen={openIndex === index}
             onToggle={() => toggleItem(index)}
           />
         ))}
@@ -122,5 +148,3 @@ export const PerformanceGuide: React.FC = () => {
     </div>
   );
 };
-
-PerformanceGuide.displayName = "PerformanceGuide";
