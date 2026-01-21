@@ -1,14 +1,9 @@
 "use client";
 
-import React, { useRef, useState, useMemo, useEffect } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import styles from "../style.module.scss"; // We'll reuse/add styles here
-import { Item } from "../_types/state.interface";
 
-interface VirtualListProps {
-  items: Item[];
-  itemHeight: number;
-  containerHeight: number;
-}
+import { VirtualListProps } from "../_types/virtuallist.interface";
 
 export const VirtualList: React.FC<VirtualListProps> = ({
   items,
@@ -24,7 +19,7 @@ export const VirtualList: React.FC<VirtualListProps> = ({
   };
 
   // Calculate the visible range
-  const { startIndex, endIndex, startOffset, visibleItems } = useMemo(() => {
+  const { startOffset, visibleItems } = useMemo(() => {
     const totalItems = items.length;
 
     // Number of items that can fit in the container
@@ -48,8 +43,6 @@ export const VirtualList: React.FC<VirtualListProps> = ({
     const visible = items.slice(start, end);
 
     return {
-      startIndex: start,
-      endIndex: end,
       startOffset: offset,
       visibleItems: visible,
     };

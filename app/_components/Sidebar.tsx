@@ -3,34 +3,25 @@
 import React, { memo } from "react";
 import styles from "../style.module.scss";
 
-interface SidebarProps {
-  searchHistory: string[];
-  favorites: string[];
-  onUseHistory: (query: string) => void;
-  onToggleFavorite: (query: string) => void;
-  onAddFavoriteToSearch: (query: string) => void;
-}
+import { SidebarProps, HistoryItemProps } from "../_types/sidebar.interface";
 
-const HistoryItem = memo<{
-  query: string;
-  isFavorite: boolean;
-  onUse: (query: string) => void;
-  onToggleFavorite: (query: string) => void;
-}>(({ query, isFavorite, onUse, onToggleFavorite }) => {
-  return (
-    <div className={styles.historyItem}>
-      <button onClick={() => onUse(query)} className={styles.historyText}>
-        {query}
-      </button>
-      <button
-        onClick={() => onToggleFavorite(query)}
-        className={`${styles.favoriteBtn} ${isFavorite ? styles.active : ""}`}
-      >
-        ★
-      </button>
-    </div>
-  );
-});
+const HistoryItem = memo<HistoryItemProps>(
+  ({ query, isFavorite, onUse, onToggleFavorite }) => {
+    return (
+      <div className={styles.historyItem}>
+        <button onClick={() => onUse(query)} className={styles.historyText}>
+          {query}
+        </button>
+        <button
+          onClick={() => onToggleFavorite(query)}
+          className={`${styles.favoriteBtn} ${isFavorite ? styles.active : ""}`}
+        >
+          ★
+        </button>
+      </div>
+    );
+  },
+);
 
 HistoryItem.displayName = "HistoryItem";
 

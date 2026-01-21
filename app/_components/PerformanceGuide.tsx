@@ -3,12 +3,7 @@
 import React, { useState } from "react";
 import styles from "../style.module.scss";
 
-interface AccordionItemProps {
-  title: string;
-  content: React.ReactNode;
-  isOpen: boolean;
-  onToggle: () => void;
-}
+import { AccordionItemProps } from "../_types/performanceguide.interface";
 
 const AccordionItem: React.FC<AccordionItemProps> = ({
   title,

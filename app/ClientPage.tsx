@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useDeferredValue } from "react";
+import { useState, useMemo, useCallback, useDeferredValue } from "react";
 import { SearchContainer } from "./_components/SearchContainer";
 import { StatsDashboard } from "./_components/StatsDashboard";
 import { Sidebar } from "./_components/Sidebar";
@@ -18,9 +18,7 @@ const PerformanceGuide = dynamic(
   { ssr: false },
 );
 
-interface ClientPageProps {
-  initialData: Item[];
-}
+import { ClientPageProps } from "./_types/clientpage.interface";
 
 export default function ClientPage({ initialData }: ClientPageProps) {
   const [searchQuery, setSearchQuery] = useState("");

@@ -3,11 +3,7 @@
 import React from "react";
 import styles from "../style.module.scss";
 
-interface SearchContainerProps {
-  query: string;
-  onSearch: (query: string) => void;
-  resultCount: number;
-}
+import { SearchContainerProps } from "../_types/searchcontainer.interface";
 
 export const SearchContainer: React.FC<SearchContainerProps> = ({
   query,

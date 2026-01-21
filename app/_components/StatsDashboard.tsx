@@ -2,13 +2,13 @@
 
 import React, { memo } from "react";
 import styles from "../style.module.scss";
-import { Stats } from "../_types/state.interface";
 
-interface StatsDashboardProps {
-  stats: Stats;
-}
+import {
+  StatsDashboardProps,
+  StatCardProps,
+} from "../_types/statsdashboard.interface";
 
-const StatCard = memo<{ label: string; value: string }>(({ label, value }) => {
+const StatCard = memo<StatCardProps>(({ label, value }) => {
   return (
     <div className={styles.statCard}>
       <label>{label}</label>
