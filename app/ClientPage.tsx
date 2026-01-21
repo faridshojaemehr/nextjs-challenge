@@ -5,9 +5,8 @@ import { SearchContainer } from "./_components/SearchContainer";
 import { StatsDashboard } from "./_components/StatsDashboard";
 import { Sidebar } from "./_components/Sidebar";
 import { ActionBox } from "./_components/ActionBox";
-import { calculateStats } from "./_lib/statsCalculator";
 import styles from "./style.module.scss";
-import { Item } from "./_types/state.interface";
+import { Item, Stats } from "./_types/state.interface";
 import dynamic from "next/dynamic";
 import { VirtualList } from "./_components/VirtualList";
 
@@ -28,32 +27,67 @@ export default function ClientPage({ initialData }: ClientPageProps) {
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  // Use deferred value for search to keep UI responsive
-  // This helps prevents the input from freezing while the heavy list/stats update
+  // Deferred query to keep input responsive
   const deferredQuery = useDeferredValue(searchQuery);
 
-  // Memoize filtered data
-  // Using deferredQuery here ensures the heavy filter operation doesn't block the input update
-  const filteredData = useMemo(() => {
-    if (!deferredQuery) return initialData;
+  // Optimized Favorites Lookup (O(1))
+  const favoritesSet = useMemo(() => new Set(favorites), [favorites]);
 
+  // Unified Filter + Stats Calculation (One Pass)
+  const { filteredData, stats } = useMemo(() => {
+    // Initialize stats accumulators
+    let sum = 0;
+    let maxValue = 0;
+    let minValue = Infinity;
+    const categoryCount: Record<string, number> = {};
+
+    // Filter Logic
     const lowerQuery = deferredQuery.toLowerCase();
-    return initialData.filter(
-      (item) =>
-        item.title.toLowerCase().includes(lowerQuery) ||
-        item.description.toLowerCase().includes(lowerQuery) ||
-        item.category.toLowerCase().includes(lowerQuery),
-    );
+    const result: Item[] = [];
+
+    // Single loop for both filtering and stats
+    for (const item of initialData) {
+      // Use pre-computed lowercase fields for fast filtering
+      const matches =
+        !lowerQuery ||
+        item.titleLower.includes(lowerQuery) ||
+        item.descriptionLower.includes(lowerQuery) ||
+        item.categoryLower.includes(lowerQuery);
+
+      if (matches) {
+        result.push(item);
+
+        // Stats Logic (accumulate on the fly)
+        sum += item.value;
+        maxValue = Math.max(maxValue, item.value);
+        minValue = Math.min(minValue, item.value);
+        categoryCount[item.category] = (categoryCount[item.category] || 0) + 1;
+      }
+    }
+
+    // Finalize Stats
+    const total = result.length;
+    const average = total > 0 ? sum / total : 0;
+
+    // Handle edge case where no items match (min should not be Infinity)
+    if (total === 0) minValue = 0;
+
+    const computedStats: Stats = {
+      total,
+      sum: sum.toFixed(2),
+      average: average.toFixed(2),
+      max: maxValue.toFixed(2),
+      min: minValue.toFixed(2),
+      categories: categoryCount,
+    };
+
+    return { filteredData: result, stats: computedStats };
   }, [initialData, deferredQuery]);
 
-  // Memoize stats calculation - this was an expensive operation running on every render
-  const stats = useMemo(() => calculateStats(filteredData), [filteredData]);
-
-  // Stable handlers with useCallback
+  // Handlers
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
 
-    // Use functional update to check previous state without adding it as a dependency
     setSearchHistory((prev) => {
       if (query && !prev.includes(query)) {
         return [query, ...prev].slice(0, 10);
@@ -97,24 +131,21 @@ export default function ClientPage({ initialData }: ClientPageProps) {
               onSearch={handleSearch}
               resultCount={filteredData.length}
             />
-            {/* Action Box - Compact */}
+            {/* Memoized ActionBox with primitive props */}
             <ActionBox
               currentQuery={searchQuery}
-              isFavorited={favorites.includes(searchQuery)}
+              isFavorited={favoritesSet.has(searchQuery)}
               onToggleFavorite={handleToggleFavorite}
             />
           </div>
 
-          {/* Heavy List */}
+          {/* Virtualized Heavy List */}
           <div className={styles.listContainer}>
             <h2>Results ({filteredData.length})</h2>
-            {/* Virtual List Container */}
             <div style={{ height: "800px" }}>
-              {" "}
-              {/* Fixed height for the container */}
               <VirtualList
                 items={filteredData}
-                itemHeight={160}
+                itemHeight={160} // Matches CSS height + padding + border
                 containerHeight={800}
               />
             </div>

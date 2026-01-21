@@ -30,13 +30,18 @@ export const generateHeavyData = (count: number = listLength): Item[] => {
     const title = `${getRandomWord(randomWords)} ${getRandomWord(randomNouns)}`;
     const description = `${getRandomWord(randomAdjectives)} ${getRandomWord(randomNouns)} for ${getRandomWord(randomNouns)} management with ${getRandomWord(randomAdjectives)} performance`;
 
+    const category = ['A', 'B', 'C', 'D', 'E'][Math.floor(Math.random() * 5)];
+
     return {
       id: i,
       title,
       description,
       value: Math.random() * 1000,
-      category: ['A', 'B', 'C', 'D', 'E'][Math.floor(Math.random() * 5)],
+      category,
       timestamp: Date.now() - Math.random() * 1000000,
+      titleLower: title.toLowerCase(),
+      descriptionLower: description.toLowerCase(),
+      categoryLower: category.toLowerCase(),
     };
   });
 };
