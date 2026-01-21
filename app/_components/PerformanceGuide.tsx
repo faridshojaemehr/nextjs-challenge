@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "../style.module.scss";
+import styles from "../_styles/style.module.scss";
 
 import { AccordionItemProps } from "../_types/performanceguide.interface";
 
@@ -23,7 +23,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   </div>
 );
 
-export const PerformanceGuide: React.FC = () => {
+export default function PerformanceGuide() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const toggleItem = (index: number) => {
@@ -147,4 +147,4 @@ export const PerformanceGuide: React.FC = () => {
       </div>
     </div>
   );
-};
+}

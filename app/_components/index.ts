@@ -5,4 +5,4 @@ export { SearchContainer } from './SearchContainer';
 export { StatsDashboard } from './StatsDashboard';
 export { Sidebar } from './Sidebar';
 export { ActionBox } from './ActionBox';
-export { PerformanceGuide } from './PerformanceGuide';
+export { default as PerformanceGuide } from "./PerformanceGuide";

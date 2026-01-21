@@ -1,5 +1,5 @@
 import { generateHeavyData } from "./_lib/dataGenerator";
-import ClientPage from "./ClientPage";
+import ClientPage from "./_components/ClientPage";
 
 export default function Main() {
   // Generate data on the server. This ensures consistency between server render and client hydration

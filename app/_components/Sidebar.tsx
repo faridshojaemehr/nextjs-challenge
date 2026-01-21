@@ -1,7 +1,7 @@
 "use client";
 
 import React, { memo } from "react";
-import styles from "../style.module.scss";
+import styles from "../_styles/style.module.scss";
 
 import { SidebarProps, HistoryItemProps } from "../_types/sidebar.interface";
 

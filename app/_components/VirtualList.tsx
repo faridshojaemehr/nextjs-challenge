@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useMemo } from "react";
-import styles from "../style.module.scss";
+import styles from "../_styles/style.module.scss";
 
 import { VirtualListProps } from "../_types/virtuallist.interface";
 

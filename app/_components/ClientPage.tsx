@@ -1,24 +1,19 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { SearchContainer } from "./_components/SearchContainer";
-import { StatsDashboard } from "./_components/StatsDashboard";
-import { Sidebar } from "./_components/Sidebar";
-import { ActionBox } from "./_components/ActionBox";
-import styles from "./style.module.scss";
-import { Item, Stats } from "./_types/state.interface";
 import dynamic from "next/dynamic";
-import { VirtualList } from "./_components/VirtualList";
+import { SearchContainer } from "./SearchContainer";
+import { StatsDashboard } from "./StatsDashboard";
+import { Sidebar } from "./Sidebar";
+import { ActionBox } from "./ActionBox";
+import { VirtualList } from "./VirtualList";
+import styles from "../_styles/style.module.scss";
+import { Item, Stats } from "../_types/state.interface";
+import { ClientPageProps } from "../_types/clientpage.interface";
 
-const PerformanceGuide = dynamic(
-  () =>
-    import("./_components/PerformanceGuide").then(
-      (mod) => mod.PerformanceGuide,
-    ),
-  { ssr: false },
-);
-
-import { ClientPageProps } from "./_types/clientpage.interface";
+const PerformanceGuide = dynamic(() => import("./PerformanceGuide"), {
+  ssr: false,
+});
 
 export default function ClientPage({ initialData }: ClientPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,7 +24,10 @@ export default function ClientPage({ initialData }: ClientPageProps) {
   // Debounce Logic: 300ms delay + 3-char limit
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
+      // Trigger search if query is empty OR has at least 3 chars
+      if (searchQuery.length === 0 || searchQuery.length >= 3) {
+        setDebouncedQuery(searchQuery);
+      }
     }, 300);
 
     return () => {
@@ -37,9 +35,12 @@ export default function ClientPage({ initialData }: ClientPageProps) {
     };
   }, [searchQuery]);
 
+  // Optimized Favorites Lookup (O(1))
   const favoritesSet = useMemo(() => new Set(favorites), [favorites]);
 
+  // Unified Filter + Stats Calculation (One Pass)
   const { filteredData, stats } = useMemo(() => {
+    // Initialize stats accumulators
     let sum = 0;
     let maxValue = 0;
     let minValue = Infinity;
@@ -51,6 +52,7 @@ export default function ClientPage({ initialData }: ClientPageProps) {
 
     // Single loop for both filtering and stats
     for (const item of initialData) {
+      // Use pre-computed lowercase fields for fast filtering
       const matches =
         !lowerQuery ||
         item.titleLower.includes(lowerQuery) ||
@@ -148,7 +150,7 @@ export default function ClientPage({ initialData }: ClientPageProps) {
             <div style={{ height: "800px" }}>
               <VirtualList
                 items={filteredData}
-                itemHeight={160}
+                itemHeight={160} // Matches CSS height + padding + border
                 containerHeight={800}
               />
             </div>
