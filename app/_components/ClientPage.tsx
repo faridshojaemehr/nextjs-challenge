@@ -11,23 +11,49 @@ import styles from "../_styles/style.module.scss";
 import { Item, Stats } from "../_types/state.interface";
 import { ClientPageProps } from "../_types/clientpage.interface";
 
+import { generateHeavyData } from "../_lib/dataGenerator";
+
 const PerformanceGuide = dynamic(() => import("./PerformanceGuide"), {
   ssr: false,
 });
 
+const LoadingState = () => (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100vh",
+      fontSize: "1.5rem",
+      color: "#666",
+    }}
+  >
+    Generating 100,000 items...
+  </div>
+);
+
 export default function ClientPage({ initialData }: ClientPageProps) {
+  const [items, setItems] = useState<Item[]>(initialData || []);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
 
+  // Hydrate data on client side to avoid ISR limits
+  useEffect(() => {
+    if (items.length === 0) {
+      // Defer generation to allow initial paint (LoadingState)
+      setTimeout(() => {
+        const data = generateHeavyData();
+        setItems(data);
+      }, 0);
+    }
+  }, [items.length]);
+
   // Debounce Logic: 300ms delay + 3-char limit
   useEffect(() => {
     const handler = setTimeout(() => {
-      // Trigger search if query is empty OR has at least 3 chars
-      if (searchQuery.length === 0 || searchQuery.length >= 3) {
-        setDebouncedQuery(searchQuery);
-      }
+      setDebouncedQuery(searchQuery);
     }, 300);
 
     return () => {
@@ -35,24 +61,18 @@ export default function ClientPage({ initialData }: ClientPageProps) {
     };
   }, [searchQuery]);
 
-  // Optimized Favorites Lookup (O(1))
   const favoritesSet = useMemo(() => new Set(favorites), [favorites]);
 
-  // Unified Filter + Stats Calculation (One Pass)
   const { filteredData, stats } = useMemo(() => {
-    // Initialize stats accumulators
     let sum = 0;
     let maxValue = 0;
     let minValue = Infinity;
     const categoryCount: Record<string, number> = {};
 
-    // Filter Logic using DEBOUNCED query
     const lowerQuery = debouncedQuery.toLowerCase();
     const result: Item[] = [];
 
-    // Single loop for both filtering and stats
-    for (const item of initialData) {
-      // Use pre-computed lowercase fields for fast filtering
+    for (const item of items) {
       const matches =
         !lowerQuery ||
         item.titleLower.includes(lowerQuery) ||
@@ -62,7 +82,6 @@ export default function ClientPage({ initialData }: ClientPageProps) {
       if (matches) {
         result.push(item);
 
-        // Stats Logic (accumulate on the fly)
         sum += item.value;
         maxValue = Math.max(maxValue, item.value);
         minValue = Math.min(minValue, item.value);
@@ -70,11 +89,9 @@ export default function ClientPage({ initialData }: ClientPageProps) {
       }
     }
 
-    // Finalize Stats
     const total = result.length;
     const average = total > 0 ? sum / total : 0;
 
-    // Handle edge case where no items match (min should not be Infinity)
     if (total === 0) minValue = 0;
 
     const computedStats: Stats = {
@@ -87,7 +104,7 @@ export default function ClientPage({ initialData }: ClientPageProps) {
     };
 
     return { filteredData: result, stats: computedStats };
-  }, [initialData, debouncedQuery]);
+  }, [items, debouncedQuery]);
 
   // Handlers
   const handleSearch = useCallback((query: string) => {
@@ -116,6 +133,10 @@ export default function ClientPage({ initialData }: ClientPageProps) {
   const handleAddFavoriteToSearch = useCallback((query: string) => {
     setSearchQuery(query);
   }, []);
+
+  if (items.length === 0) {
+    return <LoadingState />;
+  }
 
   return (
     <div className={styles.container}>
