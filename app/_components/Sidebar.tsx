@@ -1,23 +1,11 @@
-'use client';
+"use client";
 
-import React, { memo } from 'react';
-import styles from '../style.module.scss';
+import React, { memo } from "react";
+import styles from "../style.module.scss";
 
-interface SidebarProps {
-  searchHistory: string[];
-  favorites: string[];
-  onUseHistory: (query: string) => void;
-  onToggleFavorite: (query: string) => void;
-  onAddFavoriteToSearch: (query: string) => void;
-  currentQuery: string;
-}
+import { SidebarProps, HistoryItemProps } from "../_types/sidebar.interface";
 
-const HistoryItem: React.FC<{
-  query: string;
-  isFavorite: boolean;
-  onUse: (query: string) => void;
-  onToggleFavorite: (query: string) => void;
-}> = 
+const HistoryItem = memo<HistoryItemProps>(
   ({ query, isFavorite, onUse, onToggleFavorite }) => {
     return (
       <div className={styles.historyItem}>
@@ -26,25 +14,24 @@ const HistoryItem: React.FC<{
         </button>
         <button
           onClick={() => onToggleFavorite(query)}
-          className={`${styles.favoriteBtn} ${isFavorite ? styles.active : ''}`}
+          className={`${styles.favoriteBtn} ${isFavorite ? styles.active : ""}`}
         >
           ★
         </button>
       </div>
     );
-  }
+  },
+);
 
+HistoryItem.displayName = "HistoryItem";
 
-HistoryItem.displayName = 'HistoryItem';
-
-export const Sidebar: React.FC<SidebarProps> = 
+export const Sidebar = memo<SidebarProps>(
   ({
     searchHistory,
     favorites,
     onUseHistory,
     onToggleFavorite,
     onAddFavoriteToSearch,
-    currentQuery,
   }) => {
     return (
       <div className={styles.sidebarSection}>
@@ -87,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> =
         </div>
       </div>
     );
-  }
+  },
+);
 
-
-Sidebar.displayName = 'Sidebar';
+Sidebar.displayName = "Sidebar";

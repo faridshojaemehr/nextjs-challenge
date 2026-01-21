@@ -1,15 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
-import styles from '../style.module.scss';
+import { memo } from "react";
+import styles from "../style.module.scss";
+import { ActionBoxProps } from "../_types/actionbox.interface";
 
-interface ActionBoxProps {
-  currentQuery: string;
-  isFavorited: boolean;
-  onToggleFavorite: (query: string) => void;
-}
-
-export const ActionBox: React.FC<ActionBoxProps> = 
+export const ActionBox = memo<ActionBoxProps>(
   ({ currentQuery, isFavorited, onToggleFavorite }) => {
     const handleFavoriteClick = () => {
       if (currentQuery.trim()) {
@@ -23,16 +18,15 @@ export const ActionBox: React.FC<ActionBoxProps> =
           onClick={handleFavoriteClick}
           disabled={!currentQuery.trim()}
           className={`${styles.favoriteButton} ${
-            isFavorited ? styles.favorited : ''
+            isFavorited ? styles.favorited : ""
           }`}
-          title={isFavorited ? 'Remove from Favorites' : 'Add to Favorites'}
+          title={isFavorited ? "Remove from Favorites" : "Add to Favorites"}
         >
           <span className={styles.icon}>★</span>
         </button>
       </div>
     );
-  }
-  
+  },
+);
 
-
-ActionBox.displayName = 'ActionBox';
+ActionBox.displayName = "ActionBox";

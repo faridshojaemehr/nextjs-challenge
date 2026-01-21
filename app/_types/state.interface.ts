@@ -5,6 +5,9 @@ export interface Item {
   value: number;
   category: string;
   timestamp: number;
+  titleLower: string;
+  descriptionLower: string;
+  categoryLower: string;
 }
 
 export interface Stats {

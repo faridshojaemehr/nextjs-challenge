@@ -1,53 +1,49 @@
-'use client';
+"use client";
 
-import React, { useState, memo } from 'react';
-import styles from '../style.module.scss';
+import React, { useState } from "react";
+import styles from "../style.module.scss";
 
-interface AccordionItemProps {
-  title: string;
-  content: React.ReactNode;
-  isOpen: boolean;
-  onToggle: () => void;
-}
+import { AccordionItemProps } from "../_types/performanceguide.interface";
 
-const AccordionItem: React.FC<AccordionItemProps> = 
-  ({ title, content, isOpen, onToggle }) => (
-    <div className={styles.accordionItem}>
-      <button
-        className={`${styles.accordionHeader} ${isOpen ? styles.open : ''}`}
-        onClick={onToggle}
-      >
-        <span className={styles.accordionTitle}>{title}</span>
-        <span className={styles.accordionIcon}>
-          {isOpen ? '▼' : '▶'}
-        </span>
-      </button>
-      {isOpen && <div className={styles.accordionContent}>{content}</div>}
-    </div>
-  )
+const AccordionItem: React.FC<AccordionItemProps> = ({
+  title,
+  content,
+  isOpen,
+  onToggle,
+}) => (
+  <div className={styles.accordionItem}>
+    <button
+      className={`${styles.accordionHeader} ${isOpen ? styles.open : ""}`}
+      onClick={onToggle}
+    >
+      <span className={styles.accordionTitle}>{title}</span>
+      <span className={styles.accordionIcon}>{isOpen ? "▼" : "▶"}</span>
+    </button>
+    {isOpen && <div className={styles.accordionContent}>{content}</div>}
+  </div>
+);
 
-
-AccordionItem.displayName = 'AccordionItem';
+AccordionItem.displayName = "AccordionItem";
 
 export const PerformanceGuide: React.FC = () => {
   const [openItems, setOpenItems] = useState<number[]>([]);
 
   const toggleItem = (index: number) => {
     setOpenItems((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
     );
   };
 
   const guides = [
     {
-      title: '🎯 Current Issues in This Code',
+      title: "🎯 Current Issues in This Code",
       content: (
         <div className={styles.guideContent}>
           <h4>Performance Problems:</h4>
           <ul>
             <li>
-              <strong>Unnecessary Re-renders:</strong> Search state changes cause
-              entire component tree re-renders
+              <strong>Unnecessary Re-renders:</strong> Search state changes
+              cause entire component tree re-renders
             </li>
             <li>
               <strong>Heavy Computations:</strong> Stats recalculate on every
@@ -61,18 +57,20 @@ export const PerformanceGuide: React.FC = () => {
           <p className={styles.codeBlock}>
             💡 <strong>How useDeferredValue Helps:</strong>
             <br />
-            Instead of startTransition (urgent), useDeferredValue keeps expensive
-            computations deferred, showing stale UI while React works in background
+            Instead of startTransition (urgent), useDeferredValue keeps
+            expensive computations deferred, showing stale UI while React works
+            in background
           </p>
         </div>
       ),
     },
     {
-      title: '📊 How to Identify Re-renders (Important!)',
+      title: "📊 How to Identify Re-renders (Important!)",
       content: (
         <div className={styles.guideContent}>
           <p>
-            <strong>First Step:</strong> If you don't know where the problem is, use the Profiler!
+            <strong>First Step:</strong> If you don&apos;t know where the
+            problem is, use the Profiler!
           </p>
           <h4>🔧 Steps:</h4>
           <ol>
@@ -83,9 +81,16 @@ export const PerformanceGuide: React.FC = () => {
           </ol>
           <h4>🔍 How to Read the Results?</h4>
           <ul>
-            <li><strong>Flamegraph:</strong> Which components rendered</li>
-            <li><strong>Ranked Chart:</strong> Which ones are slow (red)</li>
-            <li><strong>Renders Count:</strong> How many times each component re-rendered</li>
+            <li>
+              <strong>Flamegraph:</strong> Which components rendered
+            </li>
+            <li>
+              <strong>Ranked Chart:</strong> Which ones are slow (red)
+            </li>
+            <li>
+              <strong>Renders Count:</strong> How many times each component
+              re-rendered
+            </li>
           </ul>
           <h4>❓ What to Look For?</h4>
           <ul>
@@ -118,4 +123,4 @@ export const PerformanceGuide: React.FC = () => {
   );
 };
 
-PerformanceGuide.displayName = 'PerformanceGuide';
+PerformanceGuide.displayName = "PerformanceGuide";

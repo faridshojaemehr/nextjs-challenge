@@ -1,4 +1,4 @@
-import { Item } from '../_types';
+import { Item } from '../_types/state.interface';
 
 const randomWords = [
   'innovative', 'advanced', 'premium', 'elegant', 'dynamic', 'powerful', 'smart', 'modern',
@@ -21,22 +21,27 @@ const randomAdjectives = [
   'concurrent', 'asynchronous', 'fault-tolerant', 'self-healing', 'auto-scaling'
 ];
 
-export const listLength = 50000;
+export const listLength = 100000;
 
 export const generateHeavyData = (count: number = listLength): Item[] => {
   const getRandomWord = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-  
+
   return Array.from({ length: count }, (_, i) => {
     const title = `${getRandomWord(randomWords)} ${getRandomWord(randomNouns)}`;
     const description = `${getRandomWord(randomAdjectives)} ${getRandomWord(randomNouns)} for ${getRandomWord(randomNouns)} management with ${getRandomWord(randomAdjectives)} performance`;
-    
+
+    const category = ['A', 'B', 'C', 'D', 'E'][Math.floor(Math.random() * 5)];
+
     return {
       id: i,
       title,
       description,
       value: Math.random() * 1000,
-      category: ['A', 'B', 'C', 'D', 'E'][Math.floor(Math.random() * 5)],
+      category,
       timestamp: Date.now() - Math.random() * 1000000,
+      titleLower: title.toLowerCase(),
+      descriptionLower: description.toLowerCase(),
+      categoryLower: category.toLowerCase(),
     };
   });
 };
