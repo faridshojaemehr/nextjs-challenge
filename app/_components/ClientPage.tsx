@@ -1,32 +1,39 @@
 "use client";
 
-import { useState, useMemo, useCallback, useDeferredValue } from "react";
-import { SearchContainer } from "./_components/SearchContainer";
-import { StatsDashboard } from "./_components/StatsDashboard";
-import { Sidebar } from "./_components/Sidebar";
-import { ActionBox } from "./_components/ActionBox";
-import styles from "./style.module.scss";
-import { Item, Stats } from "./_types/state.interface";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { VirtualList } from "./_components/VirtualList";
+import { SearchContainer } from "./SearchContainer";
+import { StatsDashboard } from "./StatsDashboard";
+import { Sidebar } from "./Sidebar";
+import { ActionBox } from "./ActionBox";
+import { VirtualList } from "./VirtualList";
+import styles from "../_styles/style.module.scss";
+import { Item, Stats } from "../_types/state.interface";
+import { ClientPageProps } from "../_types/clientpage.interface";
 
-const PerformanceGuide = dynamic(
-  () =>
-    import("./_components/PerformanceGuide").then(
-      (mod) => mod.PerformanceGuide,
-    ),
-  { ssr: false },
-);
-
-import { ClientPageProps } from "./_types/clientpage.interface";
+const PerformanceGuide = dynamic(() => import("./PerformanceGuide"), {
+  ssr: false,
+});
 
 export default function ClientPage({ initialData }: ClientPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  // Deferred query to keep input responsive
-  const deferredQuery = useDeferredValue(searchQuery);
+  // Debounce Logic: 300ms delay + 3-char limit
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      // Trigger search if query is empty OR has at least 3 chars
+      if (searchQuery.length === 0 || searchQuery.length >= 3) {
+        setDebouncedQuery(searchQuery);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
   // Optimized Favorites Lookup (O(1))
   const favoritesSet = useMemo(() => new Set(favorites), [favorites]);
@@ -39,8 +46,8 @@ export default function ClientPage({ initialData }: ClientPageProps) {
     let minValue = Infinity;
     const categoryCount: Record<string, number> = {};
 
-    // Filter Logic
-    const lowerQuery = deferredQuery.toLowerCase();
+    // Filter Logic using DEBOUNCED query
+    const lowerQuery = debouncedQuery.toLowerCase();
     const result: Item[] = [];
 
     // Single loop for both filtering and stats
@@ -80,7 +87,7 @@ export default function ClientPage({ initialData }: ClientPageProps) {
     };
 
     return { filteredData: result, stats: computedStats };
-  }, [initialData, deferredQuery]);
+  }, [initialData, debouncedQuery]);
 
   // Handlers
   const handleSearch = useCallback((query: string) => {

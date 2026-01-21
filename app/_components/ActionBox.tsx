@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import styles from "../style.module.scss";
+import styles from "../_styles/style.module.scss";
 import { ActionBoxProps } from "../_types/actionbox.interface";
 
 export const ActionBox = memo<ActionBoxProps>(
