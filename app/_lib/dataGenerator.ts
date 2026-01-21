@@ -1,4 +1,4 @@
-import { Item } from '../_types';
+import { Item } from '../_types/state.interface';
 
 const randomWords = [
   'innovative', 'advanced', 'premium', 'elegant', 'dynamic', 'powerful', 'smart', 'modern',
@@ -25,11 +25,11 @@ export const listLength = 50000;
 
 export const generateHeavyData = (count: number = listLength): Item[] => {
   const getRandomWord = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-  
+
   return Array.from({ length: count }, (_, i) => {
     const title = `${getRandomWord(randomWords)} ${getRandomWord(randomNouns)}`;
     const description = `${getRandomWord(randomAdjectives)} ${getRandomWord(randomNouns)} for ${getRandomWord(randomNouns)} management with ${getRandomWord(randomAdjectives)} performance`;
-    
+
     return {
       id: i,
       title,

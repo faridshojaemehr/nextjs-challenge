@@ -1,13 +1,13 @@
-import { Item, Stats } from '../_types';
+import { Item, Stats } from '../_types/state.interface';
 
 export const calculateStats = (items: Item[]): Stats => {
   let sum = 0;
   let avgValue = 0;
   let maxValue = 0;
   let minValue = Infinity;
-  let categoryCount: Record<string, number> = {};
+  const categoryCount: Record<string, number> = {};
 
-  for (let item of items) {
+  for (const item of items) {
     sum += item.value;
     maxValue = Math.max(maxValue, item.value);
     minValue = Math.min(minValue, item.value);

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { memo } from 'react';
-import styles from '../style.module.scss';
+import React, { memo } from "react";
+import styles from "../style.module.scss";
 
 interface SidebarProps {
   searchHistory: string[];
@@ -9,42 +9,38 @@ interface SidebarProps {
   onUseHistory: (query: string) => void;
   onToggleFavorite: (query: string) => void;
   onAddFavoriteToSearch: (query: string) => void;
-  currentQuery: string;
 }
 
-const HistoryItem: React.FC<{
+const HistoryItem = memo<{
   query: string;
   isFavorite: boolean;
   onUse: (query: string) => void;
   onToggleFavorite: (query: string) => void;
-}> = 
-  ({ query, isFavorite, onUse, onToggleFavorite }) => {
-    return (
-      <div className={styles.historyItem}>
-        <button onClick={() => onUse(query)} className={styles.historyText}>
-          {query}
-        </button>
-        <button
-          onClick={() => onToggleFavorite(query)}
-          className={`${styles.favoriteBtn} ${isFavorite ? styles.active : ''}`}
-        >
-          ★
-        </button>
-      </div>
-    );
-  }
+}>(({ query, isFavorite, onUse, onToggleFavorite }) => {
+  return (
+    <div className={styles.historyItem}>
+      <button onClick={() => onUse(query)} className={styles.historyText}>
+        {query}
+      </button>
+      <button
+        onClick={() => onToggleFavorite(query)}
+        className={`${styles.favoriteBtn} ${isFavorite ? styles.active : ""}`}
+      >
+        ★
+      </button>
+    </div>
+  );
+});
 
+HistoryItem.displayName = "HistoryItem";
 
-HistoryItem.displayName = 'HistoryItem';
-
-export const Sidebar: React.FC<SidebarProps> = 
+export const Sidebar = memo<SidebarProps>(
   ({
     searchHistory,
     favorites,
     onUseHistory,
     onToggleFavorite,
     onAddFavoriteToSearch,
-    currentQuery,
   }) => {
     return (
       <div className={styles.sidebarSection}>
@@ -87,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> =
         </div>
       </div>
     );
-  }
+  },
+);
 
-
-Sidebar.displayName = 'Sidebar';
+Sidebar.displayName = "Sidebar";
