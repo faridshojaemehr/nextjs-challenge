@@ -21,7 +21,7 @@ const randomAdjectives = [
   'concurrent', 'asynchronous', 'fault-tolerant', 'self-healing', 'auto-scaling'
 ];
 
-export const listLength = 50000;
+export const listLength = 100000;
 
 export const generateHeavyData = (count: number = listLength): Item[] => {
   const getRandomWord = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];

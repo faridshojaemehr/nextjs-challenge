@@ -5,10 +5,19 @@ import { SearchContainer } from "./_components/SearchContainer";
 import { StatsDashboard } from "./_components/StatsDashboard";
 import { Sidebar } from "./_components/Sidebar";
 import { ActionBox } from "./_components/ActionBox";
-import { PerformanceGuide } from "./_components/PerformanceGuide";
 import { calculateStats } from "./_lib/statsCalculator";
 import styles from "./style.module.scss";
 import { Item } from "./_types/state.interface";
+import dynamic from "next/dynamic";
+import { VirtualList } from "./_components/VirtualList";
+
+const PerformanceGuide = dynamic(
+  () =>
+    import("./_components/PerformanceGuide").then(
+      (mod) => mod.PerformanceGuide,
+    ),
+  { ssr: false },
+);
 
 interface ClientPageProps {
   initialData: Item[];
@@ -99,19 +108,15 @@ export default function ClientPage({ initialData }: ClientPageProps) {
           {/* Heavy List */}
           <div className={styles.listContainer}>
             <h2>Results ({filteredData.length})</h2>
-            <div className={styles.list}>
-              {filteredData.map((item) => (
-                <div key={item.id} className={styles.listItem}>
-                  <div className={styles.itemHeader}>
-                    <h3>{item.title}</h3>
-                    <span className={styles.category}>{item.category}</span>
-                  </div>
-                  <p>{item.description}</p>
-                  <div className={styles.itemFooter}>
-                    <span>Value: ${item.value.toFixed(2)}</span>
-                  </div>
-                </div>
-              ))}
+            {/* Virtual List Container */}
+            <div style={{ height: "800px" }}>
+              {" "}
+              {/* Fixed height for the container */}
+              <VirtualList
+                items={filteredData}
+                itemHeight={160}
+                containerHeight={800}
+              />
             </div>
           </div>
         </div>
