@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useDeferredValue,
+  useRef,
+} from "react";
 import dynamic from "next/dynamic";
 import { SearchContainer } from "./SearchContainer";
 import { StatsDashboard } from "./StatsDashboard";
@@ -10,56 +17,45 @@ import { VirtualList } from "./VirtualList";
 import styles from "../_styles/style.module.scss";
 import { Item, Stats } from "../_types/state.interface";
 import { ClientPageProps } from "../_types/clientpage.interface";
-
-import { generateHeavyData } from "../_lib/dataGenerator";
+import LoadingState from "./Loading";
 
 const PerformanceGuide = dynamic(() => import("./PerformanceGuide"), {
   ssr: false,
 });
 
-const LoadingState = () => (
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      height: "100vh",
-      fontSize: "1.5rem",
-      color: "#666",
-    }}
-  >
-    Generating 100,000 items...
-  </div>
-);
-
 export default function ClientPage({ initialData }: ClientPageProps) {
   const [items, setItems] = useState<Item[]>(initialData || []);
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  const deferredQuery = useDeferredValue(searchQuery);
+
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  // Hydrate data on client side to avoid ISR limits
-  useEffect(() => {
-    if (items.length === 0) {
-      // Defer generation to allow initial paint (LoadingState)
-      setTimeout(() => {
-        const data = generateHeavyData();
-        setItems(data);
-      }, 0);
-    }
-  }, [items.length]);
+  const workerRef = useRef<Worker | null>(null);
 
-  // Debounce Logic: 300ms delay + 3-char limit
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 300);
+    if (items.length > 0) return;
+
+    // Initialize Worker
+    workerRef.current = new Worker(
+      new URL("../_workers/data.worker.ts", import.meta.url),
+    );
+
+    workerRef.current.onmessage = (event) => {
+      const { type, data } = event.data;
+      if (type === "SUCCESS") {
+        setItems(data);
+        workerRef.current?.terminate();
+      }
+    };
+
+    workerRef.current.postMessage({ type: "START", count: 500000 });
 
     return () => {
-      clearTimeout(handler);
+      workerRef.current?.terminate();
     };
-  }, [searchQuery]);
+  }, [items.length]);
 
   const favoritesSet = useMemo(() => new Set(favorites), [favorites]);
 
@@ -68,8 +64,7 @@ export default function ClientPage({ initialData }: ClientPageProps) {
     let maxValue = 0;
     let minValue = Infinity;
     const categoryCount: Record<string, number> = {};
-
-    const lowerQuery = debouncedQuery.toLowerCase();
+    const lowerQuery = deferredQuery.toLowerCase();
     const result: Item[] = [];
 
     for (const item of items) {
@@ -82,6 +77,7 @@ export default function ClientPage({ initialData }: ClientPageProps) {
       if (matches) {
         result.push(item);
 
+        // Stats Logic (accumulate on the fly)
         sum += item.value;
         maxValue = Math.max(maxValue, item.value);
         minValue = Math.min(minValue, item.value);
@@ -89,9 +85,11 @@ export default function ClientPage({ initialData }: ClientPageProps) {
       }
     }
 
+    // Finalize Stats
     const total = result.length;
     const average = total > 0 ? sum / total : 0;
 
+    // Handle edge case where no items match (min should not be Infinity)
     if (total === 0) minValue = 0;
 
     const computedStats: Stats = {
@@ -104,7 +102,7 @@ export default function ClientPage({ initialData }: ClientPageProps) {
     };
 
     return { filteredData: result, stats: computedStats };
-  }, [items, debouncedQuery]);
+  }, [items, deferredQuery]);
 
   // Handlers
   const handleSearch = useCallback((query: string) => {

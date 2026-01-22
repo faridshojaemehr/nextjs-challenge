@@ -21,9 +21,9 @@ const randomAdjectives = [
   'concurrent', 'asynchronous', 'fault-tolerant', 'self-healing', 'auto-scaling'
 ];
 
-export const listLength = 100000;
+export const listLength = 500000;
 
-export const generateHeavyData = (count: number = listLength): Item[] => {
+export const generateHeavyData = (count: number = listLength, startId: number = 0): Item[] => {
   const getRandomWord = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
   return Array.from({ length: count }, (_, i) => {
@@ -33,7 +33,7 @@ export const generateHeavyData = (count: number = listLength): Item[] => {
     const category = ['A', 'B', 'C', 'D', 'E'][Math.floor(Math.random() * 5)];
 
     return {
-      id: i,
+      id: i + startId,
       title,
       description,
       value: Math.random() * 1000,
